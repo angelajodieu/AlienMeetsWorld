@@ -10,7 +10,7 @@ class Platformer extends Phaser.Scene{
         this.physics.world.gravity.y = 1500;
         this.JUMP_VELOCITY = -480;
         this.PARTICLE_VELOCITY = 50;
-        this.SCALE = 2.0;
+        this.SCALE = 3.0;
     }
 
     create(){
@@ -83,7 +83,7 @@ class Platformer extends Phaser.Scene{
         this.carrot = this.map.createFromObjects("Objects", {
             name: "carrot",
             key: "tilemap_FarmSheet",
-            frame: 56 //ID for the flag sprite
+            frame: 56 //sprite ID
         })
 
         //carrot animation
@@ -101,7 +101,7 @@ class Platformer extends Phaser.Scene{
         this.halfCarrot = this.map.createFromObjects("Objects", {
             name: "halfCarrot",
             key: "tilemap_FarmSheet",
-            frame: 56 //ID for the flag sprite
+            frame: 56 //sprite ID
         })
 
         //halfcarrot animation
@@ -119,7 +119,7 @@ class Platformer extends Phaser.Scene{
         this.carrotW = this.map.createFromObjects("Objects", {
             name: "carrotW",
             key: "tilemap_FarmSheet",
-            frame: 42 //ID for the flag sprite
+            frame: 42 //sprite ID
         })
 
         //carrotW animation
@@ -138,7 +138,7 @@ class Platformer extends Phaser.Scene{
         this.halfCarrotW = this.map.createFromObjects("Objects", {
             name: "halfCarrotW",
             key: "tilemap_FarmSheet",
-            frame: 43 //ID for the flag sprite
+            frame: 43 //sprite ID
         })
 
         //halfcarrotW animation
@@ -152,7 +152,7 @@ class Platformer extends Phaser.Scene{
         });
         this.halfCarrotW.forEach(halfCarrotW => halfCarrotW.play('halfCarrotWAnimation'));
 
-        
+
 
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.flag, Phaser.Physics.Arcade.STATIC_BODY);
@@ -202,6 +202,8 @@ class Platformer extends Phaser.Scene{
         //bounds for the map so that the player doesn't go out of bounds
         this.physics.world.setBounds(0, 0,this.map.widthInPixels, this.map.heightInPixels);
         my.sprite.player.setCollideWorldBounds(true);
+        my.sprite.player.body.setSize(13, 17);//make a hitbox for the player
+        my.sprite.player.body.setOffset(2, 7);
 
         //collision handling
         this.physics.add.collider(my.sprite.player, this.groundLayer);
@@ -223,7 +225,7 @@ class Platformer extends Phaser.Scene{
 
         // debug key listener (assigned to D key)
         this.input.keyboard.on('keydown-D', () => {
-            this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
+            this.physics.world.drawDebug = this.physics.world.drawDebug ? true : false
             this.physics.world.debugGraphic.clear()
         }, this);
 
@@ -235,7 +237,7 @@ class Platformer extends Phaser.Scene{
 
         //camera stuff
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
-        this.cameras.main.startFollow(my.sprite.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.startFollow(my.sprite.player, true, 0.25, 1); // (target, [,roundPixels][,lerpX][,lerpY])
         //^makes it so that the camera sticks to the player more (moves right when the player moves)
         this.cameras.main.setDeadzone(50, 100);
         this.cameras.main.setZoom(this.SCALE);
