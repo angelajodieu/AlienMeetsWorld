@@ -152,6 +152,7 @@ class Platformer extends Phaser.Scene{
         });
         this.halfCarrotW.forEach(halfCarrotW => halfCarrotW.play('halfCarrotWAnimation'));
 
+        
 
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.flag, Phaser.Physics.Arcade.STATIC_BODY);
