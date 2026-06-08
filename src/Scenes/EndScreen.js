@@ -17,6 +17,7 @@ class EndScreen extends Phaser.Scene{
 
         this.restart = this.input.keyboard.addKey("R");
         my.text.restartPrompt = this.add.bitmapText(width/2, height/2 + 80, "rocketSquare", "Press R to Play Again!").setOrigin(0.5);
+        this.cameras.main.setBackgroundColor('#87CEEB');
         document.getElementById('description').innerHTML = '<h2>EndScreen.js</h2><br>R: restart';
     }
 
