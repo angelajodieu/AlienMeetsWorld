@@ -15,7 +15,7 @@ class Platformer2 extends Phaser.Scene{
 
     create(){
         //-create the map-
-        this.map = this.add.tilemap("platformer-level2-design", 18, 18, 120, 50);
+        this.map = this.add.tilemap("platformer-level2-design", 18, 18, 120, 60);
 
         //-add tilesets-
         this.tilesetGrassy = this.map.addTilesetImage("grassy_tilemap", "tilemap_grassy_tiles");
@@ -65,7 +65,7 @@ class Platformer2 extends Phaser.Scene{
         this.flagGroup = this.add.group(this.flag);
         //create door end point object
         this.door = this.map.createFromObjects("Objects", {
-            name: "flag",
+            name: "door",
             key: "tilemap_GrassySheet",
             frame: 61
         });
@@ -73,13 +73,13 @@ class Platformer2 extends Phaser.Scene{
         this.button = this.map.createFromObjects("Objects", {
             name: "button",
             key: "tilemap_GrassySheet",
-            frame: 72
+            frame: 148
         });
         //create key objects
         this.key = this.map.createFromObjects("Objects", {
             name: "key",
             key: "tilemap_GrassySheet",
-            frame: 71
+            frame: 27
         });
 
         //-vfx stuff-
@@ -120,12 +120,14 @@ class Platformer2 extends Phaser.Scene{
         this.deathSound = this.sound.add('deathSound', {volume: 1});
         //TO DO: ADD A INTERACTABLE ITEM (BUTTON AND KEY) SOUND EFFECT
         //TO DO: ADD A REACHED CHECKPOINT SOUND EFFECT
-        //TO DO: ADD BACKGROUND MUSIC
+        this.bgMusic = this.sound.add('backgroundMusic', {volume: 0.5, loop: true});
+        this.bgMusic.play();
 
         //-collision + physics handling-
         //player and ground collision (so that the platforms are walkable)
         this.physics.add.collider(my.sprite.player, this.groundLayer);
         //player and coin collision (coin collection)
+        this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
         this.registry.set('score', 0);
         this.physics.add.overlap(my.sprite.player, this.coinGroup, (obj1, obj2) => {
             this.coinSound.play();
@@ -134,11 +136,13 @@ class Platformer2 extends Phaser.Scene{
             this.registry.set('score', score);
         });
         //player and flag collision (player reaches checkpoint)
+        this.physics.world.enable(this.flag, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.add.overlap(my.sprite.player, this.flagGroup, () => {
             //TO DO: IMPLEMENT A CHECKPOINT THING HERE
-            //like make it so that the character respawns here instead
+            //like make it so that the character respawns here instead and plays the checkpoint sound
         });
         //player and door collision (end level indicator)
+        this.physics.world.enable(this.door, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.add.overlap(my.sprite.player, this.door, () => {
             let score = this.registry.get('score');
             this.scene.start("endScreen");
@@ -171,7 +175,11 @@ class Platformer2 extends Phaser.Scene{
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.startFollow(my.sprite.player, true, 0.25, 1);
         this.cameras.main.setDeadzone(50, 100);
-        this.cameras.main.setZoom(this.SCALE);
+        this.cameras.main.setZoom(2);
+
+        //-taking cursor input-
+        cursors = this.input.keyboard.createCursorKeys();
+        this.rKey = this.input.keyboard.addKey('R');
     }
 
     update() {
