@@ -71,7 +71,7 @@ class Platformer2 extends Phaser.Scene{
         this.door = this.map.createFromObjects("Objects", {
             name: "door",
             key: "tilemap_GrassySheet",
-            frame: 61
+            frame: 130
         });
         //create button object
         this.button = this.map.createFromObjects("Objects", {
@@ -222,7 +222,7 @@ class Platformer2 extends Phaser.Scene{
                 obj2.destroy();
            }
         });
-        //player and waterfall collision
+        //player and waterfall collision (waterfall gateway for button puzzle)
         this.physics.world.enable(this.waterfalls, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.add.overlap(my.sprite.player, this.waterfallGroup, (obj1, obj2) => {
             if(!my.sprite.player.isDying){
