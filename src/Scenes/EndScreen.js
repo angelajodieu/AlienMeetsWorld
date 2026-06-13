@@ -23,7 +23,7 @@ class EndScreen extends Phaser.Scene{
 
     update(){
         if(Phaser.Input.Keyboard.JustDown(this.restart)){
-            this.scene.start("platformerScene");
+            this.scene.start("menuScreen");
         }
     }
 }

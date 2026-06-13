@@ -38,6 +38,10 @@ class Load extends Phaser.Scene {
         this.load.audio('deathSound', 'jingles_PIZZI11.ogg');
         //load coin pick up sound effect
         this.load.audio('coinSound', 'impactMetal_light_002.ogg');
+        //load button and keys pick up sound effect
+        this.load.audio('itemSound', 'impactMetal_light_001.ogg');
+        //load checkpoint sound effect
+        this.load.audio('checkpointSound', 'jingles_HIT16.ogg');
 
         //load asset for font
         this.load.bitmapFont("rocketSquare", "KennyRocketSquare_0.png", "KennyRocketSquare.fnt");

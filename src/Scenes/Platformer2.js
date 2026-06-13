@@ -43,6 +43,10 @@ class Platformer2 extends Phaser.Scene{
         my.sprite.player = this.physics.add.sprite(this.spawn.x, this.spawn.y, "platformer_characters", "tile_0004.png");
         my.sprite.player.body.setSize(13, 17);//make a hitbox for the player
         my.sprite.player.body.setOffset(2, 7);
+
+        //-set up respawn point-
+        this.respawnX = this.spawn.x;
+        this.respawnY = this.spawn.y;
         
         //set up map bounds
         this.physics.world.setBounds(0, 0,this.map.widthInPixels, this.map.heightInPixels);
@@ -75,12 +79,26 @@ class Platformer2 extends Phaser.Scene{
             key: "tilemap_GrassySheet",
             frame: 148
         });
+        this.waterfalls = this.map.createFromObjects("Objects", {
+            name: "waterfall",
+            key: "tilemap_GrassySheet",
+            frame: 54
+        });
+        this.waterfallGroup = this.add.group(this.waterfalls);
         //create key objects
         this.key = this.map.createFromObjects("Objects", {
             name: "key",
             key: "tilemap_GrassySheet",
             frame: 27
         });
+        this.keyGroup = this.add.group(this.key);
+        //create lock objects
+        this.locks = this.map.createFromObjects("Objects", {
+            name: "lock",
+            key: "tilemap_GrassySheet",
+            frame: 28
+        });
+        this.lockGroup = this.add.group(this.locks);
 
         //-vfx stuff-
         //vfx for horizontal movement (walking)
@@ -108,8 +126,28 @@ class Platformer2 extends Phaser.Scene{
             alpha: {start: 1, end: 0.1},
         });
         my.vfx.explode.stop();
-        //TO DO: ADD A VFX FOR COIN COLLECTION
-        //TO DO: ADD A VFX FOR GETTING TO A CHECKPOINT (FIREWORK)
+        //vfx for checkpoint
+        let checkpointFireworks = this.add.particles(0, 0, 'kenny-particles', {
+            frame: 'star_09.png',
+            speed: {min: 30, max: 100}, 
+            angle: {min: 250, max: 290},
+            gravityY: 200,
+            lifespan: 600,
+            scale: {start: 0.15, end: 0},
+            blendMode: 'ADD',
+            quantity: 5,
+            emitting: false
+        })
+        //vfx for button/key collection
+        let interactableParticles = this.add.particles(0, 0, 'kenny-particles', {
+            frame: 'star_07.png',
+            speed: {min: 10, max: 80}, 
+            lifespan: 400,
+            scale: {start: 0.1, end: 0},
+            blendMode: 'ADD',
+            quantity: 3,
+            emitting: false
+        });
 
         //-sound effects-
         //coin collection sound effect
@@ -118,14 +156,22 @@ class Platformer2 extends Phaser.Scene{
         this.jumpSound = this.sound.add('jumpSound', {volume: 1});
         //death sound effect
         this.deathSound = this.sound.add('deathSound', {volume: 1});
-        //TO DO: ADD A INTERACTABLE ITEM (BUTTON AND KEY) SOUND EFFECT
-        //TO DO: ADD A REACHED CHECKPOINT SOUND EFFECT
+        //interactable item (button and key) sound effect
+        this.itemSound = this.sound.add('itemSound', {volume: 1});
+        //checkpoint reached sound effect
+        this.checkpointSound = this.sound.add('checkpointSound', {volume: 1});
+        //background music
         this.bgMusic = this.sound.add('backgroundMusic', {volume: 0.5, loop: true});
         this.bgMusic.play();
 
         //-collision + physics handling-
-        //player and ground collision (so that the platforms are walkable)
-        this.physics.add.collider(my.sprite.player, this.groundLayer);
+        //player and ground collision (accounts for oneway platforms)
+        this.physics.add.collider(my.sprite.player, this.groundLayer, null, (obj1, obj2) => {
+            if(obj2.properties?.oneway) {
+                return obj1.body.velocity.y > 0;
+            }
+             return true;
+        });
         //player and coin collision (coin collection)
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
         this.registry.set('score', 0);
@@ -137,19 +183,67 @@ class Platformer2 extends Phaser.Scene{
         });
         //player and flag collision (player reaches checkpoint)
         this.physics.world.enable(this.flag, Phaser.Physics.Arcade.STATIC_BODY);
-        this.physics.add.overlap(my.sprite.player, this.flagGroup, () => {
-            //TO DO: IMPLEMENT A CHECKPOINT THING HERE
-            //like make it so that the character respawns here instead and plays the checkpoint sound
+        this.physics.add.overlap(my.sprite.player, this.flagGroup, (obj1, obj2) => {
+            if(!obj2.isReached){
+                obj2.isReached = true;
+                this.respawnX = obj2.x;
+                this.respawnY = obj2.y;
+                this.checkpointSound.play();
+                checkpointFireworks.emitParticleAt(obj2.x, obj2.y);
+            }
         });
         //player and door collision (end level indicator)
         this.physics.world.enable(this.door, Phaser.Physics.Arcade.STATIC_BODY);
-        this.physics.add.overlap(my.sprite.player, this.door, () => {
+        this.physics.add.overlap(my.sprite.player, this.door, (obj1, obj2) => {
             let score = this.registry.get('score');
             this.scene.start("endScreen");
         });
-        //TO DO: MAKE A SYSTEM WHERE IF YOU PUSH THE BUTTON, IT STAYS DOWN AND THE WATERFALLS DISAPPEAR
-        //TO DO: MAKE A SYSTEM WHERE YOU COLLECT THE KEYS, AND IF YOU GET BOTH IT GETS RID OF THE LOCKS
-        //TO DO: MAKE A SYSTEM WHERE IF THE PLAYER GETS HIT BY THE ENEMY'S PARITCLES, THEY DIE
+        //player and button collision
+        this.physics.world.enable(this.button, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.add.overlap(my.sprite.player, this.button, (obj1, obj2) => {
+            if(!obj2.isPressed){
+                obj2.isPressed = true;
+                this.itemSound.play();
+                obj2.setFrame(149);//button stays pressed
+                interactableParticles.emitParticleAt(obj2.x, obj2.y);
+                this.waterfallGroup.getChildren().forEach(w => w.destroy());
+                this.waterfallGroup.clear(true, true);
+            }
+        });
+
+        //key and lock puzzle system
+        this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.locks, Phaser.Physics.Arcade.STATIC_BODY);
+        this.keyCount = 0; //count how many keys the player has collected
+        this.physics.add.overlap(my.sprite.player, this.keyGroup, (obj1, obj2) => {//player collects the keys
+            this.itemSound.play();
+            obj2.destroy();
+            this.keyCount++;
+        })
+        this.physics.add.collider(my.sprite.player, this.lockGroup, (obj1, obj2) => {
+           if(this.keyCount == 2){
+                obj2.destroy();
+           }
+        });
+        //player and waterfall collision
+        this.physics.world.enable(this.waterfalls, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.add.overlap(my.sprite.player, this.waterfallGroup, (obj1, obj2) => {
+            if(!my.sprite.player.isDying){
+                my.sprite.player.isDying = true;
+                my.sprite.player.body.enable = false;
+                this.deathSound.play();
+                my.vfx.explode.startFollow(my.sprite.player, my.sprite.player.displayWidth/2, my.sprite.player.displayHeight/2-5, false);
+                my.vfx.explode.setParticleSpeed(0,0);
+                my.vfx.explode.start();
+                setTimeout(() => {
+                    my.vfx.explode.stop();
+                    my.sprite.player.setPosition(this.respawnX, this.respawnY);
+                    my.sprite.player.body.setVelocity(0, 0);
+                    my.sprite.player.body.enable = true;//make it collisionable again
+                    my.sprite.player.isDying = false;
+                }, 500); 
+            }
+        });
         //player and water collision (player drowns)
         this.physics.add.overlap(my.sprite.player, this.groundLayer, (obj1, obj2) => {
             let water = obj2.properties?.water == true;
@@ -160,14 +254,13 @@ class Platformer2 extends Phaser.Scene{
                 my.vfx.explode.startFollow(my.sprite.player, my.sprite.player.displayWidth/2, my.sprite.player.displayHeight/2-5, false);
                 my.vfx.explode.setParticleSpeed(0,0);
                 my.vfx.explode.start();
-                setTimeout(() =>{
-                    setTimeout(() => {
-                        my.vfx.explode.stop();
-                        my.sprite.player.setPosition(this.spawn.x, this.spawn.y);
-                        my.sprite.player.body.setVelocity(0, 0);
-                        my.sprite.player.body.enable = true;//make it collisionable again
-                    }, 500);
-                })
+                setTimeout(() => {
+                    my.vfx.explode.stop();
+                    my.sprite.player.setPosition(this.respawnX, this.respawnY);
+                    my.sprite.player.body.setVelocity(0, 0);
+                    my.sprite.player.body.enable = true;//make it collisionable again
+                    my.sprite.player.isDying = false;
+                }, 500);
             }
         });
 
