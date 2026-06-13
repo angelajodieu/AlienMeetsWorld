@@ -5,8 +5,8 @@ class Platformer extends Phaser.Scene{
     }
 
     init(){
-        this.ACCELERATION = 200;
-        this.DRAG = 950;
+        this.ACCELERATION = 300;
+        this.DRAG = 2000;
         this.physics.world.gravity.y = 1500;
         this.JUMP_VELOCITY = -480;
         this.PARTICLE_VELOCITY = 50;
@@ -152,8 +152,6 @@ class Platformer extends Phaser.Scene{
         });
         this.halfCarrotW.forEach(halfCarrotW => halfCarrotW.play('halfCarrotWAnimation'));
 
-
-
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.flag, Phaser.Physics.Arcade.STATIC_BODY);
         this.flagGroup = this.add.group(this.flag);
@@ -170,7 +168,6 @@ class Platformer extends Phaser.Scene{
             quantity: 1,
         });
         my.vfx.walking.stop();
-
         
         my.vfx.jumping = this.add.particles(0, 0, "kenny-particles", {
             frame: ['magic_03.png', 'magic_04'],
@@ -225,7 +222,7 @@ class Platformer extends Phaser.Scene{
 
         // debug key listener (assigned to D key)
         this.input.keyboard.on('keydown-D', () => {
-            this.physics.world.drawDebug = this.physics.world.drawDebug ? true : false
+            this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
             this.physics.world.debugGraphic.clear()
         }, this);
 

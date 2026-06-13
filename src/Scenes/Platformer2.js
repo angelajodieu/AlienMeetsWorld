@@ -5,8 +5,8 @@ class Platformer2 extends Phaser.Scene{
     }
     
     init(){
-        this.ACCELERATION = 200;
-        this.DRAG = 950;
+        this.ACCELERATION = 300;
+        this.DRAG = 2000;
         this.physics.world.gravity.y = 1500;
         this.JUMP_VELOCITY = -480;
         this.PARTICLE_VELOCITY = 50;
@@ -160,9 +160,6 @@ class Platformer2 extends Phaser.Scene{
         this.itemSound = this.sound.add('itemSound', {volume: 1});
         //checkpoint reached sound effect
         this.checkpointSound = this.sound.add('checkpointSound', {volume: 1});
-        //background music
-        this.bgMusic = this.sound.add('backgroundMusic', {volume: 0.5, loop: true});
-        this.bgMusic.play();
 
         //-collision + physics handling-
         //player and ground collision (accounts for oneway platforms)

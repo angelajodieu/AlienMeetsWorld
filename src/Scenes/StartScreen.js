@@ -18,6 +18,10 @@ class StartScreen extends Phaser.Scene{
         this.start = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         my.text.restartPrompt = this.add.bitmapText(width/2, height/2 + 80, "rocketSquare", "Press SPACE to Start!").setOrigin(0.5);
         this.cameras.main.setBackgroundColor('#87CEEB');
+
+        //background music
+        this.bgMusic = this.sound.add('backgroundMusic', {volume: 0.5, loop: true});
+        this.bgMusic.play();
     }
 
     update(){
